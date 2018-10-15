@@ -1,0 +1,51 @@
+---
+title: "06_Stroud_Hannah_2018"
+author: "Hannah Stroud"
+date: "October 15, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Homework 6- Correlation and Linear Regression 
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(readr)
+library(ggplot2)
+```
+## 1 Correlation- W&S Chapter 16  
+
+###1.1 Question 15
+
+###1.2 Question 19  
+
+## 2 Correlation SE
+
+#### 2a. Are these two variables correlated? What is the output of cor() here? what does a test show you?
+
+#### 2b. What is the SE of the correlation based on the info from cor.test()?  
+
+#### 2c. What is the SE via simulation? To do this, you’ll need to use cor() and get the relevant parameter from the output (remember - you get a matrix back, so, what’s the right index!), replicate(), and sample() or  dplyr::sample_n() with replace=TRUE to get, let’s say, 1000 correlations. How does this compare to your value above?  
+
+## 3 W&S Chapter 17
+
+### 3.1 Question 19  
+
+### 3.2 Question 30  
+
+### 3.3 Question 31  
+
+## 4 Intervals and simulation  
+
+#### 4a. Fit simulations  
+Using geom_abline() make a plot that has the following layers and shows that these simulated lines match up well with the fit CI. 1) the data, 2) the lm fit with a CI, and 3) simulated lines. You might have to much around to make it look as good as possible.  
+
+#### 4b. Prediction simulations  
+That’s all well and good, but what about the prediction intervals? To each line, we can add some error drawn from the residual standard deviation. That residual can either be extracted from summary() or you can get the sd of residuals.
+
+Now, visualize the simulated prediction interval around the fit versus the calculated prediction interval around the fit via predict. +1 extra credit for a clever visualization of all elements on one figure - however you would like  
+
