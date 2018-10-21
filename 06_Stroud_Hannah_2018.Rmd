@@ -206,5 +206,20 @@ base_bites + geom_abline(slope= sim_coeff$mosq.dose,intercept=sim_coeff$X.Interc
 ####4b. what about the prediction intervals? To each line, we can add some error drawn from the residual standard deviation. That residual can either be extracted from `summary()` or you can get the `sd` of `residuals`.Now, visualize the simulated prediction interval around the fit versus the calculated prediction interval around the fit via `predict`. **+1 extra credit for a clever visualization of all elements on one figure - however you would like**
 
 ```{r}
+#extract residuals and add to data frame 
+pred_frame <- predict.lm(bites_mod, interval= "prediction") 
+pred_frame <- cbind(mosq, pred_frame)
+
+#add sd for sim_coeff 
+sim_coeff <- sim_coeff %>%
+  mutate(err= rnorm(n(), 0, sd(bites_mod$residuals)))%>%
+  ungroup()
+#viz simulated prediction interval around fit vs calculated prediction interval around fit from "predict"
+
+base_bites + #data with CI fit and line reg line
+  geom_abline(data= sim_coeff, aes(slope=mosq.dose,intercept= err + (X.Intercept.)), 
+                                   color="darkgreen", alpha=0.5) + #sim prediction interval 
+  geom_ribbon(data=pred_frame, aes(ymin=lwr, ymax= upr), fill= "purple", alpha= 0.3)+ #calc pred. interval
+   geom_abline(data = sim_coeff, aes(slope = mosq.dose, intercept = X.Intercept.), alpha = 0.5) #sim fit 
 ```
 
