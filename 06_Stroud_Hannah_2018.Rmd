@@ -20,16 +20,98 @@ library(ggplot2)
 ## 1 Correlation- W&S Chapter 16  
 
 ###1.1 Question 15
+15a. Display association between two variables in a scatter plot
+```{r}
+gmatter <- read_csv("./data/chap16q15LanguageGreyMatter.csv")
+
+ggplot(data=gmatter, mapping= aes(x= proficiency, y=greymatter))+ geom_point()
+```
+15b. Calculate correlation between proficiency and grey matter
+```{r}
+gmatter_mod <- lm(greymatter~proficiency, data=gmatter)
+summary(gmatter_mod)%>% broom::glance()
+```
+R^2 is 0.6696, so R (our correlation coefficient) is 0.8183  
+
+15c. Test the null hypothesis of zero correlations
+```{r}
+anova(gmatter_mod)
+```
+We have a high F value (40.539) and a small p-value is small, (3.264e^-6), so we can reject the null hypothesis  
+
+15d. What are our assumptions in part c?
+We assumed a bivariate normal distribution (3D bell shaped probability instead of 2d) which features a linear relationship between X and Y, and the frequency distributions of X and Y are separately normal.  
+
+15e. Does the scatter plot support the assumptions?  
+Yes it does, for our range of data, it shows a linear relationshi between the two.  
 
 ###1.2 Question 19  
+```{r}
+liver <- read_csv("./data/chap16q19LiverPreparation.csv")
+```
+19a. Calculate the correlation coefficient between t unbound fraction and concentration. 
+```{r}
+liv_mod <- lm(liver$unboundFraction~ liver$concentration)
+summary(liv_mod)%>% broom::glance()
+```
+r is 0.8564  
+19b. Plot the relationship between two variables 
+```{r}
+ggplot(data=liver, mapping= aes(x=concentration, y=unboundFraction))+
+  geom_point()
 
+```
+19c.It looks like instead of a linear relationship, it could be exponential decay.  
+
+19d. You could log transform the data to get a linear relationship.  
 ## 2 Correlation SE
+```{r}
+set.seed(20181011)
+library(mnormt)
 
+mat <- rmnorm(10, varcov = matrix(c(1,0.3, 0.3, 1), ncol=2)) %>%
+  round(2) %>%
+  as.data.frame %>%
+  rename(cats = "V1", happiness_score = "V2")
+```
 #### 2a. Are these two variables correlated? What is the output of cor() here? what does a test show you?
 
+```{r}
+#model it
+mat_mod <- lm(happiness_score ~ cats,data= mat)
+# eval assumptions
+par(mfrow= c(2,2))
+plot(mat_mod)
+par(mfrow= c(1,1))
+#eval model
+anova(mat_mod) %>%
+  broom::tidy() 
+
+#test 
+summary(mat_mod)
+
+#viz 
+library(modelr)
+mat <- mat %>% add_predictions(mat_mod)
+
+base_mat +
+  geom_line(data= mat, 
+            mapping= aes (y= pred), color= "blue", size=2)
+
+cor(mat$cats, mat$happiness_score)
+```
+These two variables are correlated, with an R score of 0.4568 which is good for biological data and our F statistic is 6.728, which indicates that the regression explaines more of the variability that then residuals, indicating correlation. 
+
 #### 2b. What is the SE of the correlation based on the info from cor.test()?  
+```{r}
+cor.test(mat$cats, mat$happiness_score)
+```
+CI= 0.08050709 -> 0.91578829
+The SE of the correation is 0.2130819 (as determined from the CI in the cor.test, take the range of the CI, divide by 2*1.96)   
 
 #### 2c. What is the SE via simulation? To do this, you’ll need to use cor() and get the relevant parameter from the output (remember - you get a matrix back, so, what’s the right index!), replicate(), and sample() or  dplyr::sample_n() with replace=TRUE to get, let’s say, 1000 correlations. How does this compare to your value above?  
+```{r}
+```
 
 ## 3 W&S Chapter 17
 
