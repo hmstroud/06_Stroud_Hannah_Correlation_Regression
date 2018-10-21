@@ -51,10 +51,8 @@ liver <- read_csv("./data/chap16q19LiverPreparation.csv")
 ```
 19a. Calculate the correlation coefficient between t unbound fraction and concentration. 
 ```{r}
-liv_mod <- lm(liver$unboundFraction~ liver$concentration)
-summary(liv_mod)%>% broom::glance()
+cor(liver$concentration, liver$unboundFraction)
 ```
-r is 0.8564  
 19b. Plot the relationship between two variables 
 ```{r}
 ggplot(data=liver, mapping= aes(x=concentration, y=unboundFraction))+
@@ -79,28 +77,13 @@ mat <- rmnorm(10, varcov = matrix(c(1,0.3, 0.3, 1), ncol=2)) %>%
 ```{r}
 #model it
 mat_mod <- lm(happiness_score ~ cats,data= mat)
-# eval assumptions
-par(mfrow= c(2,2))
-plot(mat_mod)
-par(mfrow= c(1,1))
-#eval model
-anova(mat_mod) %>%
-  broom::tidy() 
 
 #test 
-summary(mat_mod)
-
-#viz 
-library(modelr)
-mat <- mat %>% add_predictions(mat_mod)
-
-base_mat +
-  geom_line(data= mat, 
-            mapping= aes (y= pred), color= "blue", size=2)
+summary(mat_mod)%>% broom::glance()
 
 cor(mat$cats, mat$happiness_score)
 ```
-These two variables are correlated, with an R score of 0.4568 which is good for biological data and our F statistic is 6.728, which indicates that the regression explaines more of the variability that then residuals, indicating correlation. 
+Our correlation coefficient is 0.6759  and our F statistic is 6.728, which indicates that the regression explaines more of the variability that then residuals, indicating correlation.  
 
 #### 2b. What is the SE of the correlation based on the info from cor.test()?  
 ```{r}
@@ -111,23 +94,117 @@ The SE of the correation is 0.2130819 (as determined from the CI in the cor.test
 
 #### 2c. What is the SE via simulation? To do this, you’ll need to use cor() and get the relevant parameter from the output (remember - you get a matrix back, so, what’s the right index!), replicate(), and sample() or  dplyr::sample_n() with replace=TRUE to get, let’s say, 1000 correlations. How does this compare to your value above?  
 ```{r}
-```
+se_sim <- replicate(1000, cor(sample_n(mat, nrow(mat),replace= TRUE)) [1,2]) 
 
+sd(se_sim)
+```
+They similar but the SE of cor.test() is larger. 
 ## 3 W&S Chapter 17
 
 ### 3.1 Question 19  
+```{r}
+grass <- read_csv("./data/chap17q19GrasslandNutrientsPlantSpecies.csv")
+```
+19a. Draw a scatter plot 
+```{r}
+ggplot(data= grass, mapping= aes(x=nutrients, y=species)) +
+  geom_point()
+```
+X should be nutrients and y should be species.  
 
-### 3.2 Question 30  
+19b. What is the rate of change in number of species per nutrient type added? Include stardard error
+```{r}
+grass_mod <- lm(grass$species~grass$nutrients)
+summary(grass_mod)
+```
+The rate of change is -3.339 nutrients added to species. The standard error is 1.098.  
+
+19c. Add the least squares regression to your scatter plot. What fraction of the variation in the number of plant species is "explained" by number of nutrients?  
+```{r}
+ggplot(data= grass, mapping= aes(x=nutrients, y=species)) +
+  geom_point() +
+  stat_smooth(method= "lm", 
+              color= "blue", 
+              size=2)
+```
+70% is explained by nutrients added??
+
+19d. Test the null hypothesis
+```{r}
+summary(grass_mod)%>% broom::glance()
+```
+P is <0.05 (p- 0.016) and F statistic is 9.24, we can reject the null that there is no correlation between the two.  
+### 3.2 Question 30
+```{r}
+carbon <- read_csv("./data/chap17q30NuclearTeeth.csv")
+```
+30a. The approximate slope of the regression line is - 0.053.    
+
+30b. The narrower dashed lines show the confidence bands, these bands tell us the precision of the predict y mean for each value of x. It doesn't incorporate external sources of variability. 
+
+30c. The wider dashed lines show the prediction intervals which incorporates the standard deviation. This allows us to measure the precision for a predicted y value (instead of the mean y value) for each x.  
 
 ### 3.3 Question 31  
+```{r}
+portion <- read_csv("./data/chap17q31LastSupperPortionSize.csv")
+```
+31a. Calculate a regression line between year of painting and portion size. What is the trend? How rapidly (what's the slope) has it changed in paintings?
+```{r}
+#visualization data
+portion_base <-ggplot(data=portion, aes(x=year, y=portionSize))+ geom_point()
+#create linear regression model
+portion_mod <- lm(portionSize~year, data=portion)
+print(portion_mod)
+```
+The trend is portion size increases as time goes on. The rate of change is 0.0033229 of a portion per a year. It changes slowly.  
 
-## 4 Intervals and simulation  
+31b. What is the most plausible range of values for the slope? Calculate the 95% CI. 
 
-#### 4a. Fit simulations  
-Using geom_abline() make a plot that has the following layers and shows that these simulated lines match up well with the fit CI. 1) the data, 2) the lm fit with a CI, and 3) simulated lines. You might have to much around to make it look as good as possible.  
 
-#### 4b. Prediction simulations  
-That’s all well and good, but what about the prediction intervals? To each line, we can add some error drawn from the residual standard deviation. That residual can either be extracted from summary() or you can get the sd of residuals.
+31c. Test for a change in relative portion size painted in these works with the year in which they were painted.  
 
-Now, visualize the simulated prediction interval around the fit versus the calculated prediction interval around the fit via predict. +1 extra credit for a clever visualization of all elements on one figure - however you would like  
+31d. Draw a residual plot of the data. Can you see any cause for concern about using a linear regression?
+```{r}
+plot(portion_mod, which=1)
+plot(portion_mod, which=2)
+```
+The residual plot shows we don't have a nice spread around the horizon line. Our data might violate some of the assumptions we made in our model. To address this problem, we could transform the data (ie log transformation) or use other tests like a spearmens correlation coefficient.  
+
+###4 Intervals and simulation 
+Fit the deet and bites model from lab. 
+```{r}
+mosq <- read_csv("./data/17q24DEETMosquiteBites.csv")
+
+bites_mod<- lm(mosq$bites~mosq$dose)
+
+base_bites <- ggplot(data= mosq, mapping= aes(x= dose, y=bites))+
+  geom_point() +
+  stat_smooth(method= "lm", 
+              color= "blue", 
+              size=2)
+```
+look a vcov() applied to model 
+```{r}
+vcov(bites_mod)  #returns the variance- covariance matrix for fitted model
+```
+ This maintains the best fit possible, despite deviations in the slope and intercept.  
+```{r}
+library(mnormt)
+
+rmnorm(4, mean = coef(bites_mod), varcov = vcov(bites_mod))
+``` 
+
+####4a. Using geom_abline() make a plot that has the following layers and shows that these simulated lines match up well with the fit CI. 1) the data, 2) the lm fit with a CI, and 3) simulated lines. You might have to much around to make it look as good as possible. 
+
+```{r}
+#simulate lines with rmnorm 
+sim_coeff <- data.frame(rmnorm(50, mean = coef(bites_mod), varcov = vcov(bites_mod)))
+
+base_bites + geom_abline(slope= sim_coeff$mosq.dose,intercept=sim_coeff$X.Intercept., color="darkgreen", alpha=0.3)
+```
+
+####4b. what about the prediction intervals? To each line, we can add some error drawn from the residual standard deviation. That residual can either be extracted from `summary()` or you can get the `sd` of `residuals`.Now, visualize the simulated prediction interval around the fit versus the calculated prediction interval around the fit via `predict`. **+1 extra credit for a clever visualization of all elements on one figure - however you would like**
+
+```{r}
+```
 
