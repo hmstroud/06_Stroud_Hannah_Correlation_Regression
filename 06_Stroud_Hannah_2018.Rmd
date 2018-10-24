@@ -127,7 +127,7 @@ ggplot(data= grass, mapping= aes(x=nutrients, y=species)) +
               color= "blue", 
               size=2)
 ```
-70% is explained by nutrients added??
+Based on the value of r^2, 0.536 is the fraction explained by the number of nutrients since our r^2 value tells us how much our "x" explains the variance in our data. 
 
 19d. Test the null hypothesis
 ```{r}
@@ -159,10 +159,15 @@ print(portion_mod)
 The trend is portion size increases as time goes on. The rate of change is 0.0033229 of a portion per a year. It changes slowly.  
 
 31b. What is the most plausible range of values for the slope? Calculate the 95% CI. 
-
+```{R}
+confint(portion_mod)
+```
+Our plausible range for slope is 0.001349556 to 0.005308266  
 
 31c. Test for a change in relative portion size painted in these works with the year in which they were painted.  
-
+```{r}
+anova(portion_mod)
+```
 31d. Draw a residual plot of the data. Can you see any cause for concern about using a linear regression?
 ```{r}
 plot(portion_mod, which=1)
